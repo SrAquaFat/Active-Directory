@@ -1,0 +1,38 @@
+
+!--- will need a csv file with such information about the users
+
+$Users = Import-Csv -Delimiter "," -Path "C:\Users\Administrator\Desktop\Users.csv"            
+foreach ($User in $Users)            
+{            
+    $Displayname = $User.Firstname + " " + $User.Lastname            
+    $UserFirstname = $User.Firstname            
+    $UserLastname = $User.Lastname            
+    $OU = "OU=it,DC=ADATUM,DC=COM"            
+    $SAM = $User.SAM            
+    $UPNuser = $User.Firstname + "." + $User.Lastname
+    $UPN = $UPNuser + "@" + $User.Maildomain            
+    $Password = $User.Password
+
+    if (Get-ADUser -Filter {SamAccountName -eq $SAM}) 
+    {
+        Write-Host "User already exists."
+    }
+    
+    else {          
+
+        New-ADUser `
+            -Name "$Displayname" `
+            -DisplayName "$Displayname" `
+            -SamAccountName $SAM `
+            -UserPrincipalName $UPN `
+            -GivenName "$UserFirstname" `
+            -Surname "$UserLastname" `
+            -AccountPassword (ConvertTo-SecureString $Password -AsPlainText -Force) `
+            -Enabled $true `
+            -Path "$OU" `
+            -ChangePasswordAtLogon $false `
+            -PasswordNeverExpires $true `
+
+        }
+
+    }
